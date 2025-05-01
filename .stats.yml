@@ -1,0 +1,4 @@
+configured_endpoints: 4
+openapi_spec_url: https://storage.googleapis.com/stainless-sdk-openapi-specs/ustb%2Fmeterhub-bdf67e8541f053487fc8092153bb6d4329b223be668c09802710145cd7046ca0.yml
+openapi_spec_hash: 3e88b3c1450dcf45bc518593e863a2bf
+config_hash: c30025636ea374d75be91986484e3072
