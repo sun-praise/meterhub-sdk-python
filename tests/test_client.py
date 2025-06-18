@@ -23,9 +23,7 @@ from pydantic import ValidationError
 
 from meterhub import Meterhub, AsyncMeterhub, APIResponseValidationError
 from meterhub._types import Omit
-from meterhub._utils import maybe_transform
 from meterhub._models import BaseModel, FinalRequestOptions
-from meterhub._constants import RAW_RESPONSE_HEADER
 from meterhub._exceptions import MeterhubError, APIStatusError, APITimeoutError, APIResponseValidationError
 from meterhub._base_client import (
     DEFAULT_TIMEOUT,
@@ -35,7 +33,6 @@ from meterhub._base_client import (
     DefaultAsyncHttpxClient,
     make_request_options,
 )
-from meterhub.types.api.v1.meter_detect_params import MeterDetectParams
 
 from .utils import update_env
 
@@ -715,32 +712,21 @@ class TestMeterhub:
 
     @mock.patch("meterhub._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
-    def test_retrying_timeout_errors_doesnt_leak(self, respx_mock: MockRouter) -> None:
+    def test_retrying_timeout_errors_doesnt_leak(self, respx_mock: MockRouter, client: Meterhub) -> None:
         respx_mock.post("/api/v1/meter/detect/").mock(side_effect=httpx.TimeoutException("Test timeout error"))
 
         with pytest.raises(APITimeoutError):
-            self.client.post(
-                "/api/v1/meter/detect/",
-                body=cast(object, maybe_transform(dict(image="REPLACE_ME"), MeterDetectParams)),
-                cast_to=httpx.Response,
-                options={"headers": {RAW_RESPONSE_HEADER: "stream"}},
-            )
+            client.api.v1.meter.with_streaming_response.detect(image="image").__enter__()
 
         assert _get_open_connections(self.client) == 0
 
     @mock.patch("meterhub._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
-    def test_retrying_status_errors_doesnt_leak(self, respx_mock: MockRouter) -> None:
+    def test_retrying_status_errors_doesnt_leak(self, respx_mock: MockRouter, client: Meterhub) -> None:
         respx_mock.post("/api/v1/meter/detect/").mock(return_value=httpx.Response(500))
 
         with pytest.raises(APIStatusError):
-            self.client.post(
-                "/api/v1/meter/detect/",
-                body=cast(object, maybe_transform(dict(image="REPLACE_ME"), MeterDetectParams)),
-                cast_to=httpx.Response,
-                options={"headers": {RAW_RESPONSE_HEADER: "stream"}},
-            )
-
+            client.api.v1.meter.with_streaming_response.detect(image="image").__enter__()
         assert _get_open_connections(self.client) == 0
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
@@ -1544,32 +1530,25 @@ class TestAsyncMeterhub:
 
     @mock.patch("meterhub._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
-    async def test_retrying_timeout_errors_doesnt_leak(self, respx_mock: MockRouter) -> None:
+    async def test_retrying_timeout_errors_doesnt_leak(
+        self, respx_mock: MockRouter, async_client: AsyncMeterhub
+    ) -> None:
         respx_mock.post("/api/v1/meter/detect/").mock(side_effect=httpx.TimeoutException("Test timeout error"))
 
         with pytest.raises(APITimeoutError):
-            await self.client.post(
-                "/api/v1/meter/detect/",
-                body=cast(object, maybe_transform(dict(image="REPLACE_ME"), MeterDetectParams)),
-                cast_to=httpx.Response,
-                options={"headers": {RAW_RESPONSE_HEADER: "stream"}},
-            )
+            await async_client.api.v1.meter.with_streaming_response.detect(image="image").__aenter__()
 
         assert _get_open_connections(self.client) == 0
 
     @mock.patch("meterhub._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
-    async def test_retrying_status_errors_doesnt_leak(self, respx_mock: MockRouter) -> None:
+    async def test_retrying_status_errors_doesnt_leak(
+        self, respx_mock: MockRouter, async_client: AsyncMeterhub
+    ) -> None:
         respx_mock.post("/api/v1/meter/detect/").mock(return_value=httpx.Response(500))
 
         with pytest.raises(APIStatusError):
-            await self.client.post(
-                "/api/v1/meter/detect/",
-                body=cast(object, maybe_transform(dict(image="REPLACE_ME"), MeterDetectParams)),
-                cast_to=httpx.Response,
-                options={"headers": {RAW_RESPONSE_HEADER: "stream"}},
-            )
-
+            await async_client.api.v1.meter.with_streaming_response.detect(image="image").__aenter__()
         assert _get_open_connections(self.client) == 0
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
