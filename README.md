@@ -1,6 +1,6 @@
 # Meterhub Python API library
 
-[![PyPI version](https://img.shields.io/pypi/v/meterhub.svg)](https://pypi.org/project/meterhub/)
+[![PyPI version](<https://img.shields.io/pypi/v/meterhub.svg?label=pypi%20(stable)>)](https://pypi.org/project/meterhub/)
 
 The Meterhub Python library provides convenient access to the Meterhub REST API from any Python 3.8+
 application. The library includes type definitions for all request params and response fields,
